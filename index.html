@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Drawing Board - Jagdish & Ritesh</title>
+    <style>
+        * {
+            user-select: none;
+        }
+        body {
+            background: #2c3e50;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        /* Header section with two students */
+        .header {
+            background: linear-gradient(135deg, #1e2a3a, #0f1724);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            text-align: center;
+            width: fit-content;
+            backdrop-filter: blur(4px);
+        }
+        .student-row {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .student {
+            text-align: center;
+        }
+        .student h3 {
+            margin: 0;
+            font-size: 1.3rem;
+            letter-spacing: 1px;
+        }
+        .student p {
+            margin: 5px 0 0;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        .divider {
+            width: 1px;
+            background: rgba(255,255,255,0.3);
+            margin: 0 10px;
+        }
+        .container {
+            background: #ecf0f1;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            display: flex;
+            padding: 15px;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        canvas {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            cursor: crosshair;
+            display: block;
+        }
+        .toolbar {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            width: 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        /* Horizontal color palette */
+        .color-palette {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+            justify-content: space-between;
+            flex-wrap: nowrap;
+        }
+        .color-swatch {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            cursor: pointer;
+            border: 2px solid #bdc3c7;
+            transition: transform 0.1s ease;
+            flex-shrink: 0;
+        }
+        .color-swatch:hover {
+            transform: scale(1.05);
+            border-color: #2c3e50;
+        }
+        button {
+            background: #3498db;
+            border: none;
+            color: white;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.05s linear;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        button:active {
+            transform: scale(0.97);
+        }
+        button.eraser {
+            background: #e67e22;
+        }
+        button.newpage {
+            background: #e74c3c;
+        }
+        .status {
+            background: #ecf0f1;
+            border-radius: 40px;
+            padding: 8px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .cpp-note {
+            font-size: 11px;
+            text-align: center;
+            color: #7f8c8d;
+            margin-top: 15px;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+        @media (max-width: 700px) {
+            .student h3 { font-size: 1rem; }
+            .student p { font-size: 0.7rem; }
+            .student-row { gap: 15px; }
+            canvas { width: 100%; height: auto; }
+            .toolbar { width: 100%; }
+            .color-swatch { width: 35px; height: 35px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top header with both students -->
+    <div class="header">
+        <div class="student-row">
+            <div class="student">
+                <h3>🎨 Jagdish Lokhande</h3>
+                <p>📚 Div - D &nbsp;|&nbsp; 🆔 Roll - 57</p>
+            </div>
+            <div class="divider"></div>
+            <div class="student">
+                <h3>✏️ Ritesh More</h3>
+                <p>📚 Div - D &nbsp;|&nbsp; 🆔 Roll - 64</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <canvas id="drawingCanvas" width="800" height="600" style="width:800px;height:600px"></canvas>
+
+        <div class="toolbar">
+            <!-- Horizontal color palette -->
+            <div class="color-palette" id="colorPalette"></div>
+            
+            <button id="penBtn" style="background:#2c3e50;">✏️ Pen</button>
+            <button id="eraserBtn" class="eraser">🧽 Eraser</button>
+            <button id="newPageBtn" class="newpage">📄 New Page</button>
+            
+            <div class="status">
+                <span id="modeText">Mode: Pen</span><br>
+                <span id="colorText">Color: Black</span>
+            </div>
+            <div class="cpp-note">
+                ⚡ HTML5 Drawing Board<br>
+                C++ version (SFML) also available.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function(){
+            const canvas = document.getElementById('drawingCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = 800;
+            canvas.height = 600;
+            
+            let drawing = false;
+            let penMode = true;
+            let currentColor = '#000000';
+            
+            const colors = [
+                '#000000', '#FF0000', '#00FF00', '#0000FF',
+                '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500'
+            ];
+            
+            const colorNames = {
+                '#000000': 'Black', '#FF0000': 'Red', '#00FF00': 'Green',
+                '#0000FF': 'Blue', '#FFFF00': 'Yellow', '#FF00FF': 'Magenta',
+                '#00FFFF': 'Cyan', '#FFA500': 'Orange'
+            };
+            
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            let lineWidth = 6;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            const colorPaletteDiv = document.getElementById('colorPalette');
+            const penBtn = document.getElementById('penBtn');
+            const eraserBtn = document.getElementById('eraserBtn');
+            const newPageBtn = document.getElementById('newPageBtn');
+            const modeTextSpan = document.getElementById('modeText');
+            const colorTextSpan = document.getElementById('colorText');
+            
+            // Build horizontal color swatches
+            colors.forEach(color => {
+                const swatch = document.createElement('div');
+                swatch.className = 'color-swatch';
+                swatch.style.backgroundColor = color;
+                swatch.title = colorNames[color];
+                swatch.addEventListener('click', () => {
+                    if (penMode) {
+                        currentColor = color;
+                        colorTextSpan.innerText = `Color: ${colorNames[color]}`;
+                    }
+                });
+                colorPaletteDiv.appendChild(swatch);
+            });
+            
+            function updateUI() {
+                if (penMode) {
+                    modeTextSpan.innerText = 'Mode: Pen';
+                    colorTextSpan.innerText = `Color: ${colorNames[currentColor] || 'Custom'}`;
+                } else {
+                    modeTextSpan.innerText = 'Mode: Eraser';
+                    colorTextSpan.innerText = 'Eraser active';
+                }
+            }
+            
+            penBtn.addEventListener('click', () => {
+                penMode = true;
+                updateUI();
+            });
+            
+            eraserBtn.addEventListener('click', () => {
+                penMode = false;
+                updateUI();
+            });
+            
+            newPageBtn.addEventListener('click', () => {
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            });
+            
+            function getDrawColor() {
+                return penMode ? currentColor : '#FFFFFF';
+            }
+            
+            function drawDot(x, y) {
+                ctx.beginPath();
+                ctx.arc(x, y, lineWidth / 2, 0, Math.PI * 2);
+                ctx.fillStyle = getDrawColor();
+                ctx.fill();
+            }
+            
+            function drawLine(fromX, fromY, toX, toY) {
+                ctx.beginPath();
+                ctx.moveTo(fromX, fromY);
+                ctx.lineTo(toX, toY);
+                ctx.strokeStyle = getDrawColor();
+                ctx.lineWidth = lineWidth;
+                ctx.stroke();
+            }
+            
+            let lastX = 0, lastY = 0;
+            
+            function getCanvasCoordinates(e) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                let clientX, clientY;
+                if (e.touches) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                let canvasX = (clientX - rect.left) * scaleX;
+                let canvasY = (clientY - rect.top) * scaleY;
+                canvasX = Math.min(Math.max(0, canvasX), canvas.width);
+                canvasY = Math.min(Math.max(0, canvasY), canvas.height);
+                return { x: canvasX, y: canvasY };
+            }
+            
+            function startDrawing(e) {
+                drawing = true;
+                const pos = getCanvasCoordinates(e);
+                lastX = pos.x;
+                lastY = pos.y;
+                drawDot(lastX, lastY);
+            }
+            
+            function draw(e) {
+                if (!drawing) return;
+                const pos = getCanvasCoordinates(e);
+                drawLine(lastX, lastY, pos.x, pos.y);
+                lastX = pos.x;
+                lastY = pos.y;
+            }
+            
+            function stopDrawing() {
+                drawing = false;
+            }
+            
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseleave', stopDrawing);
+            canvas.addEventListener('touchstart', startDrawing);
+            canvas.addEventListener('touchmove', draw);
+            canvas.addEventListener('touchend', stopDrawing);
+            canvas.addEventListener('touchcancel', stopDrawing);
+            canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+            
+            updateUI();
+        })();
+    </script>
+</body>
+</html>
